@@ -1,20 +1,22 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title> 5x5</title>
+  <title>5x5 Number Game</title>
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
       background-color: #f0f4f8;
       display: flex;
-      justify-content: center;
+      flex-direction: column;
       align-items: center;
+      justify-content: center;
       height: 100vh;
     }
     table {
       border-collapse: collapse;
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
     }
     td {
       width: 80px;
@@ -26,17 +28,45 @@
       background-color: #e0f7fa;
       color: #00796b;
       border: 2px solid #b2ebf2;
+      cursor: pointer;
       transition: background-color 0.3s;
     }
     td:hover {
       background-color: #b2dfdb;
     }
+    #timer, #result {
+      font-size: 20px;
+      margin: 10px;
+    }
+    #resetBtn {
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #00796b;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      display: none;
+    }
+    #resetBtn:hover {
+      background-color: #004d40;
+    }
   </style>
 </head>
 <body>
+  <!-- Online music file -->
+  <audio id="bgMusic" src="https://www.bensound.com/bensound-music/bensound-creativeminds.mp3" autoplay loop></audio>
+
+  <div id="timer">⏱️ Time: 0 seconds</div>
   <table id="randomTable"></table>
+  <div id="result"></div>
+  <button id="resetBtn">Play Again</button>
 
   <script>
+    let startTime = null;
+    let interval = null;
+    let currentNumber = 1;
+
     function shuffle(array) {
       for (let i = array.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -45,18 +75,54 @@
       return array;
     }
 
-    const numbers = shuffle([...Array(25).keys()].map(n => n + 1));
-    const table = document.getElementById('randomTable');
-
-    for (let i = 0; i < 5; i++) {
-      const row = document.createElement('tr');
-      for (let j = 0; j < 5; j++) {
-        const cell = document.createElement('td');
-        cell.textContent = numbers[i * 5 + j];
-        row.appendChild(cell);
-      }
-      table.appendChild(row);
+    function startTimer() {
+      startTime = Date.now();
+      interval = setInterval(() => {
+        const elapsed = Math.floor((Date.now() - startTime) / 1000);
+        document.getElementById('timer').textContent = `⏱️ Time: ${elapsed} seconds`;
+      }, 1000);
     }
+
+    function stopTimer() {
+      clearInterval(interval);
+    }
+
+    function generateTable() {
+      const numbers = shuffle([...Array(25).keys()].map(n => n + 1));
+      const table = document.getElementById('randomTable');
+      table.innerHTML = '';
+      currentNumber = 1;
+      document.getElementById('result').textContent = '';
+      document.getElementById('resetBtn').style.display = 'none';
+      document.getElementById('timer').textContent = '⏱️ Time: 0 seconds';
+
+      numbers.forEach((num, index) => {
+        if (index % 5 === 0) table.insertRow();
+        const cell = table.rows[table.rows.length - 1].insertCell();
+        cell.textContent = num;
+        cell.addEventListener('click', () => {
+          if (parseInt(cell.textContent) === currentNumber) {
+            if (currentNumber === 1) startTimer();
+            cell.style.visibility = 'hidden';
+            currentNumber++;
+            if (currentNumber > 25) {
+              stopTimer();
+              const totalTime = Math.floor((Date.now() - startTime) / 1000);
+              document.getElementById('result').textContent = `🎉 Completed in ${totalTime} seconds!`;
+              document.getElementById('resetBtn').style.display = 'inline-block';
+            }
+          }
+        });
+      });
+    }
+
+    document.getElementById('resetBtn').addEventListener('click', generateTable);
+
+    generateTable();
+  </script>
+</body>
+</html>
+
   </script>
 </body>
 </html>
